@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forca de Arquitetura Computacional</title>
+    <link rel="shortcut icon" href="./assets/img/icon.png" type="image/x-icon">
+    <script src="./assets/js/arqcomp.js"></script>
+    <script src="./assets/js/terminal.js"></script>
+    <script src="./assets/js/funcoes.js"></script>
+    <style>
+        * {
+            font-family: Courier;
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+        
+        body {
+            display: flex;
+            color: #00ff00;
+            background-color: #000;            
+            justify-content: center;
+            padding: 20px 20px 50px;
+            width: calc(100vw - 40px);            
+        }
+        
+        .window {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        #divConsoleLog {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        #inputRow {
+            display: none;
+            width: 100%;
+        }
+
+        #inputRow p {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        #pSenha {
+            color: #0000ff;
+        }
+
+        p {
+            margin: 4px 0;
+            white-space: pre;
+            width: max-content;
+        }
+
+        input {
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid #00ff00;
+            outline: none;
+            overflow: hidden;
+            width: 80%;
+        }
+
+        #prize {
+            width: calc(100vw - 40px);
+            height: 100vh; 
+        }
+
+        h1 {
+            display: none;
+            font-size: 40px;
+        }
+    </style>
+</head>
+<body onload="setUp()" onkeydown="processarInput(event)">
+    <div class="window">
+        <div id="divConsoleLog">
+            <p>Microsoft Windows [versão 10.0.19044.1526]</p>
+            <p>(c) Microsoft Corporation. Todos os direitos reservados.</p>
+            <br>
+            <br>             
+        </div>
+        <div id="inputRow">
+            <p><span id="spanPath"></span>> <span id="spanCommandLine"></span><span id="spanCaret">_</span></p>
+        </div>
+    </div>
+    <h1>Parabéns por conhecer Tópicos de Arquitetura Computacional</h1>
+</body>
+</html>
+<script>
+    var path = ''
+    var entradaAtual = '';
+    var caretVisivel = true;
+
+    setInterval(() => {
+        caretVisivel ? spanCaret.style.display = 'flex' : spanCaret.style.display = 'none'
+        caretVisivel = !caretVisivel;        
+    }, 500)
+
+    function processarInput(event) {
+        var tecla = event.key;
+
+        if (tecla == 'Backspace') {
+            entradaAtual = entradaAtual.slice(0, -1);
+        } else if (tecla.length == 1) {
+            if (tecla.toLowerCase() == 'c' && event.ctrlKey) {
+                inputRow.style.display = 'none';
+                divConsoleLog.innerHTML += `
+                    <p>${path}></p>
+                    <br>
+                `;
+
+                setTimeout(() => {
+                    mudarAmbiente('cmd');
+                    mudarModo('comando');
+                }, 500);
+                return;
+            }
+
+            entradaAtual += tecla;
+        } else if (tecla == 'Enter') {
+            inputRow.style.display = 'none';
+            divConsoleLog.innerHTML += `<p>${path}> ${entradaAtual}</p>`;
+            entradaAtual = entradaAtual.trim();
+
+            if (entradaAtual == '') {
+                return;
+            }
+
+            if (terminal.ambienteAtual == 'arqcomp' && terminal.modoAtual == 'quiz') {
+                verificarResposta();
+            } else {
+                verificarAmbiente();
+            }
+
+            entradaAtual = '';
+        }
+
+        spanCommandLine.innerHTML = entradaAtual;
+    }
+
+    function verificarAmbiente() {
+        var primeiroSeparador = entradaAtual.indexOf(' ');
+        var comando = entradaAtual;
+        if (primeiroSeparador > 0) {
+            comando = entradaAtual.slice(0, primeiroSeparador);
+        }
+
+        switch (terminal.ambienteAtual) {
+            case 'arqcomp':
+                validarArqComp(comando);
+                break;        
+            default:
+                validarCMD(comando);
+                break;
+        }                
+    }
+
+    function validarCMD(comando) {
+        if (terminal.comandos[comando] == undefined) {
+            divConsoleLog.innerHTML += `
+                <p>'${comando}' não é reconhecido como um comando interno</p>
+                <p>ou externo, um programa operável ou um arquivo em lotes.</p>
+            `;
+
+            setTimeout(() => {
+                inputRow.style.display = 'flex';
+                window.location.href = '#spanCommandLine'
+            }, 100);
+        } else {
+            var primeiroSeparador = entradaAtual.indexOf(' ');
+            var restoComando = ''
+            if (primeiroSeparador > 0) {
+                restoComando = entradaAtual.slice(primeiroSeparador, entradaAtual.length).trim();
+            }
+
+            setTimeout(() => {
+                terminal.comandos[comando].executar(restoComando);
+            }, 500);
+        }        
+    }
+
+    function validarArqComp(comando) {
+        var primeiroSeparador = entradaAtual.indexOf(' ');
+        var restoComando = ''
+
+        if (primeiroSeparador > 0) {
+            restoComando = entradaAtual.slice(primeiroSeparador, entradaAtual.length).trim();
+        }
+
+
+        if (terminal.comandos.arqcomp.comandos[comando] == undefined) {
+            divConsoleLog.innerHTML += `
+                <p>'${comando}' não é reconhecido como um comando interno</p>
+                <p>ou externo, um programa operável ou um arquivo em lotes.</p>
+                <br>
+            `;
+
+            terminal.comandos.arqcomp.comandos.help.executar();
+        } else {
+            setTimeout(() => {
+                terminal.comandos.arqcomp.comandos[comando].executar(restoComando);
+            }, 500);
+        }
+    }
+
+    function verificarResposta() {
+        if (terminal.usuarioAtual == null || terminal.usuarioAtual.quiz == 16) {
+            console.log('Entrei na condição superior');
+            divConsoleLog.innerHTML += `
+                <p>Usuário já completou o quiz</p>
+            `;
+            setTimeout(() => {
+                inputRow.style.display = 'flex';
+                window.location.href = '#spanCommandLine'
+            }, 100);
+            return;
+        }
+
+        var resposta = entradaAtual.toLowerCase();
+
+        var acertou = arqcomp.quiz[terminal.usuarioAtual.quiz].a.find(a => {
+            answer = a.toLowerCase();
+
+            if (answer == resposta) {
+                return answer;
+            }
+        });
+
+        if (acertou != undefined) {
+            terminal.usuarioAtual.quiz++;
+
+            if (terminal.usuarioAtual.quiz < 16) {
+                divConsoleLog.innerHTML += `
+                    <p>PARABÉNS!!!</p>
+                    <p>Sua resposta está correta, vamos para a próxima pergunta</p>
+                    <br>
+                `;
+
+                atualizarUsuario(terminal.usuarioAtual);
+
+                divConsoleLog.innerHTML += `
+                    <p>QUIZ SOBRE TÓPICOS DE ARQUITETURA COMPUTACIONAL</p>
+                    <p>Vidas restantes: ${terminal.usuarioAtual.lifes}</p>
+                    <br>
+                    <p>Pergunta ${terminal.usuarioAtual.quiz+1}</p>
+                    <p>${arqcomp.quiz[terminal.usuarioAtual.quiz].q}</p>
+                    <br>
+                    <p>Sua resposta:</p>
+                `;
+
+                setTimeout(() => {
+                    inputRow.style.display = 'flex';
+                    window.location.href = '#spanCommandLine'
+                }, 100);
+            } else {
+                var newPass = (Math.floor(Math.random() * 128)).toString(2);
+
+                alert(newPass);
+
+                divConsoleLog.innerHTML += `
+                    <p>PARABÉNS!!!</p>
+                    <p>Você finalizou o quiz</p>
+                    <p id="pSenha">Sua senha de acesso é ${newPass}, anote, pois não será possível recuperá-la</p>
+                    <br>
+                `;
+
+                terminal.usuarioAtual.pass = newPass;
+                atualizarUsuario(terminal.usuarioAtual);
+
+                encerrarQuiz();
+                setTimeout(() => {                    
+                    inputRow.style.display = 'flex';
+                    window.location.href = '#spanCommandLine'
+                }, 100);
+                setTimeout(() => {
+                    var elemento =  document.getElementById('pSenha');
+                    elemento.parentNode.removeChild(elemento);
+                }, 5000);
+            }
+        } else {
+            terminal.usuarioAtual.lifes--;
+            atualizarUsuario(terminal.usuarioAtual);
+
+            if (terminal.usuarioAtual.lifes > 0) {
+                divConsoleLog.innerHTML += `
+                    <p>RESPOSTA ERRADA!!!</p>
+                    <p>Sua resposta está incorreta, tente novamente</p>
+                    <p>Cuidado, você tem ${terminal.usuarioAtual.lifes} tentativas restantes</p>
+                    <br>
+                `;
+
+                setTimeout(() => {
+                    inputRow.style.display = 'flex';
+                    window.location.href = '#spanCommandLine'
+                }, 100);
+            } else {
+                divConsoleLog.innerHTML += `
+                    <p>RESPOSTA ERRADA!!!</p>
+                    <p>Sua resposta está incorreta, você não possui mais tentativas</p>
+                    <p>Seu usuário será deletado e você terá de recomeçar o quiz</p>
+                    <br>
+                `;
+
+                encerrarQuiz();
+                setTimeout(() => {
+                    inputRow.style.display = 'flex';
+                    window.location.href = '#spanCommandLine'
+                }, 100);
+            }
+        }
+    }
+</script>
