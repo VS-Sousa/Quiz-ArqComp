@@ -166,6 +166,8 @@ var terminal = {
                                 <p>Carregando seu prêmio...</p>
                             `;
 
+                            document.body.setAttribute('onkeydown', 'reiniciar(event)');
+
                             if (allowed) {
                                 setTimeout(() => {
                                     document.body.style.padding = 0;
@@ -181,7 +183,6 @@ var terminal = {
                                     document.body.style.backgroundSize = 'cover';
                                     document.body.style.height = 'calc(100vh - 70px)';
                                     document.body.style.alignItems = 'center';
-                                    document.body.setAttribute('onkeydown', 'reiniciar(event)')
 
                                     document.getElementsByClassName('window').item(0).style.display = 'none';
                                     document.getElementsByTagName('h1').item(0).style.display = 'block';
