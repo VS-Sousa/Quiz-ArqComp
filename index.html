@@ -170,10 +170,7 @@
                 <p>ou externo, um programa operável ou um arquivo em lotes.</p>
             `;
 
-            setTimeout(() => {
-                inputRow.style.display = 'flex';
-                window.location.href = '#spanCommandLine'
-            }, 100);
+            terminal.comandos.help.executar();
         } else {
             var primeiroSeparador = entradaAtual.indexOf(' ');
             var restoComando = ''
